@@ -5,7 +5,7 @@
 # Copyright (c) 2011-2016 Martin Matuska <mm at FreeBSD.org>
 #
 FREEBSD_MIRROR="${FREEBSD_MIRROR:-ftp://ftp.freebsd.org/pub/FreeBSD}"
-FS_LIST="var tmp"
+FS_LIST=${FS_LIST:-usr usr/home usr/local var var/log tmp}
 
 usage() {
 	echo "Usage: $0 [-h] -d geom_provider [-d geom_provider ...] [ -u dist_url ] [-r mirror|raidz] [-m mount_point] [-p zfs_pool_name] [-s swap_partition_size] [-z zfs_partition_size] [-c] [-C] [-l] [-4]"
@@ -33,7 +33,7 @@ help() {
 	echo "-C                : compatibility mode with limited feature flags"
 	echo "                    (enable only async_destroy, empty_bpobj and lz4_compress)"
 	echo "-m mount_point    : use this mount point for operations (default: /mnt)"
-	echo "-c                : enable lzjb compression for all datasets"
+	echo "-c                : enable lz4 compression for all datasets"
 	echo "-l                : use legacy mounts (via fstab) instead of ZFS mounts"
 	echo "-4                : use fletcher4 as default checksum algorithm"
 	echo; echo "Examples:"
@@ -59,7 +59,7 @@ while getopts d:u:t:r:p:s:z:m:V:Chcl4 o; do
 		z) ZPART="${OPTARG}" ;;
 		V) VERSION="${OPTARG}" ;;
 		C) COMPAT=1 ;;
-		c) LZJB=1 ;;
+		c) LZ4=1 ;;
 		l) LEGACY=1 ;;
 		4) FLETCHER=1 ;;
 		h) help; exit 1;;
@@ -296,9 +296,9 @@ if [ "${FLETCHER}" = "1" ]; then
 	echo " done"
 fi
 
-if [ "${LZJB}" = "1" ]; then
-	echo -n "Setting default compression to lzjb for ${POOL} ..."
-	if ! /sbin/zfs set compression=lzjb ${POOL} > /dev/null 2> /dev/null; then
+if [ "${LZ4}" = "1" ]; then
+	echo -n "Setting default compression to lz4 for ${POOL} ..."
+	if ! /sbin/zfs set compression=lz4 ${POOL} > /dev/null 2> /dev/null; then
 		echo " error"
 		exit 1
 	fi
